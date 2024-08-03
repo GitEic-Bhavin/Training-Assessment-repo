@@ -43,7 +43,41 @@ Your company is developing a new e-commerce application consisting of several mi
 **Task 2: Dockerize Microservices**
 
 1. **Create Dockerfiles** for each microservice (front-end, product catalog, order processing).
+
+  - Dockerfile 
+  ```Dockerfile
+   FROM nginx:alpine
+
+   COPY index.html /usr/share/nginx/html/index.html
+
+   EXPOSE 80
+
+   CMD ["nginx", "-g", "daemon off;"]
+  ```
+  - Create index.html for front-end app.
+  ```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Static Website</title>
+</head>
+<body>
+    <h1>Hello from Nginx front-end!</h1>
+    <p>This is a simple static front-end served by Nginx.</p>
+</body>
+</html>     
+  ```
 1. **Build Docker images** for each microservice and push them to a container registry (e.g., Docker Hub).
+- Build Docker Image by below command
+  
+      docker build -t bhavin1099/d18-frontend:latest
+
+   ![alt text](p1/DockerBuildFrontend.png)
+- Push Docker Image into Docker Registry
+
+      docker push bhavin1099/d18-frontend:latest
+
+   ![alt text](p1/PushImagesDocker.png)
 1. **Deliverables**:
 - Dockerfiles for each microservice
 - Built Docker images in a container registry
@@ -51,12 +85,221 @@ Your company is developing a new e-commerce application consisting of several mi
 **Task 3: Kubernetes Deployment**
 
 1. **Create Kubernetes manifests** for deploying each microservice.
-   1. Define Pods, Services, Deployments, and ReplicaSets.
+   1. Define Pods, 
+   2. Services, 
+   3. Deployments, and ReplicaSets.
+#### frontend-deployment.yaml to deploy fronend app.   
+```yml
+# frontend-deployment.yaml to deploy fronend app.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:# frontend-deployment.yaml to deploy fronend app.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: bhavin1099/d18-frontend:latest
+        ports:
+        - containerPort: 80
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: bhavin1099/d18-frontend:latest
+        ports:
+        - containerPort: 80
+```
+
+#### Service for front-end app
+```yml
+# Frontend-Service 
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+   - protocol: TCP
+     port: 80
+     targetPort: 80
+  type: ClusterIP
+```
+#### Create backend-deployment.yml for product-catelog.
+```yml
+# backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-catelog
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: product-catelog
+  template:
+    metadata:
+      labels:
+        app: product-catelog
+    spec:
+      containers:
+      - name: product-catelog
+        image: bhavin1099/d19-productcatlog:latest     
+        ports:
+        - containerPort: 80
+```
+#### Create Service for backend-deployment of product-catelog
+```yml
+# Backend-Service for Product Catelog
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: product-catelog
+  ports:
+   - protocol: TCP
+     port: 80
+     targetPort: 80
+  type: ClusterIP
+```
+#### Create Deployment for Order-Proccessing.
+```yml
+# backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-process
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: order-process
+  template:
+    metadata:
+      labels:
+        app: order-process
+    spec:
+      containers:
+      - name: order-process
+        image: bhavin1099/orderprocess:v1     
+        ports:
+        - containerPort: 80
+```
+#### Create Service for Order-Processing.
+```yml
+# oBackend-Service for Order Processing
+apiVersion: v1
+kind: Service
+metadata:
+  name: obackend-service
+spec:
+  selector:
+    app: order-process
+  ports:
+   - protocol: TCP
+     port: 80
+     targetPort: 80
+  type: ClusterIP
+```
    1. Use ConfigMaps and Secrets for configuration management.
 1. **Deploy the microservices** to a Kubernetes cluster.
+  
+- Deployment
+
+![alt text](p1/Deployment.png)
+
+- Service
+   
+![alt text](p1/Deployment.png)
+
+#### To Control Traffic by Path Based Use Ingress
+- ingress.yml
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: assess-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    # To Use SSL to encryption of the user request
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts: # Edit /etc/hosts file -- minikube-ip  domain-name
+    - day18-assess.nginx
+    secretName: tls-secret
+    # Add secret.cert and secret.key into kubernetes deployment. 
+    # In my case I give secretname is tls-secret during creation SSL cert.
+# spec:
+  rules:
+  - host: day18-assess.nginx  # defind in /etc/hosts file
+    http:
+      paths:
+      - path: /frontend
+        pathType: Prefix
+        backend: 
+          service:
+            name: frontend-service  # If add path /frontend in url "day18-assess.nginx/frontend then this service will use to show frontend app page.
+            port:
+              number: 80
+      - path: /pbackend  # same for Product Catelog,
+        pathType: Prefix
+        backend:
+          service: 
+            name: backend-service
+            port: 
+              number: 80
+
+      - path: /obackend  # same for order processing.
+        pathType: Prefix
+        backend:
+          service: 
+            name: obackend-service
+            port: 
+              number: 80
+```
+
 1. **Deliverables**:
 - Kubernetes manifests (YAML files)
 - Successful deployment of microservices in the Kubernetes cluster
+
+- Varify Frontend App.
+![alt text](p1/AllowSSL.png)
+
+- See Frontend Page
+![alt text](p1/FrontendPage.png)
+
+- See Product-catelog Page
+![alt text](p1/pbackend.png)
+
+- See Order-Processing page
+![alt text](p1/obackend.png)
 
 **Task 4: Ansible Configuration Management**
 
