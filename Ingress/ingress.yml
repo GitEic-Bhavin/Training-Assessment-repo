@@ -6,15 +6,15 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
-  # tls:
-  # - hosts:
-  #   - day9.nginx
-  #   secretName: tls-secret
+  tls:
+  - hosts:
+    - day18-assess.nginx
+    secretName: tls-secret
 # spec:
   rules:
-  - host: day9.nginx
+  - host: day18-assess.nginx
     http:
       paths:
       - path: /frontend
@@ -24,10 +24,18 @@ spec:
             name: frontend-service
             port:
               number: 80
-      - path: /backend
+      - path: /pbackend
         pathType: Prefix
         backend:
           service: 
             name: backend-service
+            port: 
+              number: 80
+
+      - path: /obackend
+        pathType: Prefix
+        backend:
+          service: 
+            name: obackend-service
             port: 
               number: 80
