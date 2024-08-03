@@ -324,6 +324,52 @@ spec:
 
 1. **Create Ansible playbooks** to manage the deployment and configuration of the microservices.
    1. Use variables to handle environment-specific configurations.
+
+      - k8s-playbook.yml
+```yml
+---
+- name: Run Deployment on kubernetes\
+  hosts: localhost
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: install kubernetes dependencies for ansible
+      pip:
+        name: kubernetes
+        state: present
+    - name: Create a Deployment by reading the definition from a local file
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        namespace: default
+        src: "{{ item }}"
+      with_items:
+        - "{{ Deployment1 }}"
+        - "{{ Deployment2 }}"
+        - "{{ Deployment3 }}"
+        
+    - name: Apply Services 
+      kubernetes.core.k8s:
+        kubeconfig: ~/.kube/config
+        state: present
+        namespace: default
+        src: "{{ item }}"
+      with_items:
+        - "{{ Service1 }}"
+        - "{{ Service2 }}"
+        - "{{ Service3 }}"
+
+    - name: Apply Ingress to route traffice by path based
+      kubernetes.core.k8s:
+        kubeconfig: ~/.kube/config
+        state: present
+        namespace: default
+        src: "{{ Ingress }}"
+```
+   - NOTE: variable is defined in vars/main.yml
+   - See OutPut of playbook to deploy, service ans ingress
+![alt text](p1/k8s-playbook.png)
    1. Utilize Jinja2 templates to dynamically generate configuration files.
 1. **Set up Ansible inventories** to manage different environments (development, testing, production).
 1. **Deliverables**:
