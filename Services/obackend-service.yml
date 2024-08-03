@@ -1,0 +1,13 @@
+# oBackend-Service for Order Processing
+apiVersion: v1
+kind: Service
+metadata:
+  name: obackend-service
+spec:
+  selector:
+    app: order-process
+  ports:
+   - protocol: TCP
+     port: 80
+     targetPort: 80
+  type: ClusterIP
