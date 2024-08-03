@@ -38,8 +38,27 @@ Your company is developing a new e-commerce application consisting of several mi
 1. **Create a Git repository** to store all project files, including Ansible playbooks, Dockerfiles, and Kubernetes manifests.
 1. **Branching Strategy**:
 - Create branches for development, testing, and production.
-- Implement a strategy for merging changes from development to testing and production.
+![alt text](p1/Branchlist.png)
+- Git add, commit, push for development branch
+![alt text](p1/DevAddComPush.png)
+- Checkout to Testing branch and Push current state.
+![alt text](p1/GitPendingPush.png)
+- Merge development branch into current testing branch.
+![alt text](p1/GitMergeTesting.png)
+- Checkout to product-catelog branch 
 
+      git merge development
+- Solve merge conflict & commit to why want to merge.
+![alt text](p1/ProCatMergeConflict.png)
+- To Bring changes of merge, Push product-catlog branch.
+![alt text](p1/GitPushProd-cat.png)
+- Rename product-catelog to production branch.
+![alt text](p1/GitPushProd-catRename.png)
+
+- Implement a strategy for merging changes from development to testing and production.
+- Push to Development Branch.
+  
+    - 
 **Task 2: Dockerize Microservices**
 
 1. **Create Dockerfiles** for each microservice (front-end, product catalog, order processing).
